@@ -1,0 +1,127 @@
+[
+  {
+    "id": "1",
+    "make": "Toyota",
+    "model": "Land Cruiser V8",
+    "year": 2019,
+    "category": ["safari_4x4", "luxury"],
+    "seats": 7,
+    "transmission": "Automatic",
+    "fuel_type": "Diesel",
+    "photos": [
+      "https://images.unsplash.com/photo-1590209706362-e9d6d03426e2?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fd?auto=format&fit=crop&q=80&w=800"
+    ],
+    "description": "Premium 4x4 perfect for safaris and cross-country trips. Comes with a pop-up roof and heavy-duty suspension.",
+    "daily_price_ugx": 450000,
+    "driver_mode": "driver_available",
+    "driver_fee_ugx": 50000,
+    "pickup_location": "Kampala",
+    "rating_avg": 4.9,
+    "trip_count": 24,
+    "owner": {
+      "name": "Kato M.",
+      "verified": true,
+      "response_time": "1 hr"
+    }
+  },
+  {
+    "id": "2",
+    "make": "Toyota",
+    "model": "Harrier",
+    "year": 2016,
+    "category": ["business", "self_drive"],
+    "seats": 5,
+    "transmission": "Automatic",
+    "fuel_type": "Petrol",
+    "photos": [
+      "https://images.unsplash.com/photo-1609521263047-f8f205293f24?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&q=80&w=800"
+    ],
+    "description": "Elegant mid-size SUV, ideal for city driving and business meetings. Smooth ride with comfortable leather interior.",
+    "daily_price_ugx": 200000,
+    "driver_mode": "self_drive_only",
+    "pickup_location": "Entebbe",
+    "rating_avg": 4.7,
+    "trip_count": 12,
+    "owner": {
+      "name": "Sarah N.",
+      "verified": true,
+      "response_time": "2 hrs"
+    }
+  },
+  {
+    "id": "3",
+    "make": "Toyota",
+    "model": "Hiace Super Custom",
+    "year": 2015,
+    "category": ["group_van", "with_driver"],
+    "seats": 8,
+    "transmission": "Automatic",
+    "fuel_type": "Diesel",
+    "photos": [
+      "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?auto=format&fit=crop&q=80&w=800"
+    ],
+    "description": "Spacious family van with sunroof and comfortable captain seats. Perfect for group trips upcountry.",
+    "daily_price_ugx": 250000,
+    "driver_mode": "driver_required",
+    "driver_fee_ugx": 40000,
+    "pickup_location": "Kampala",
+    "rating_avg": 4.8,
+    "trip_count": 31,
+    "owner": {
+      "name": "DriveUG Fleet",
+      "verified": true,
+      "response_time": "15 min"
+    }
+  },
+  {
+    "id": "4",
+    "make": "Mercedes-Benz",
+    "model": "G-Class",
+    "year": 2020,
+    "category": ["luxury", "wedding"],
+    "seats": 5,
+    "transmission": "Automatic",
+    "fuel_type": "Petrol",
+    "photos": [
+      "https://images.unsplash.com/photo-1520031441872-265e4ff70366?auto=format&fit=crop&q=80&w=800"
+    ],
+    "description": "Ultimate luxury statement. Frequently booked for weddings and VIP escorts.",
+    "daily_price_ugx": 1200000,
+    "driver_mode": "driver_required",
+    "driver_fee_ugx": 100000,
+    "pickup_location": "Kampala",
+    "rating_avg": 5.0,
+    "trip_count": 5,
+    "owner": {
+      "name": "Elite Rides UG",
+      "verified": true,
+      "response_time": "1 hr"
+    }
+  },
+  {
+    "id": "5",
+    "make": "Toyota",
+    "model": "Vitz",
+    "year": 2014,
+    "category": ["budget", "self_drive"],
+    "seats": 4,
+    "transmission": "Automatic",
+    "fuel_type": "Petrol",
+    "photos": [
+      "https://images.unsplash.com/photo-1590362891991-f776e747a588?auto=format&fit=crop&q=80&w=800"
+    ],
+    "description": "Economical city runaround. Excellent fuel efficiency, easy to park.",
+    "daily_price_ugx": 80000,
+    "driver_mode": "self_drive_only",
+    "pickup_location": "Kampala",
+    "rating_avg": 4.5,
+    "trip_count": 48,
+    "owner": {
+      "name": "James O.",
+      "verified": true,
+      "response_time": "30 min"
+    }
+  }
+]
