@@ -1,27 +1,56 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Search, CarFront } from 'lucide-react';
+import { Home, Search, CarFront, Moon, Sun } from 'lucide-react';
 import { getWhatsAppLink } from '../utils/whatsapp';
 import WhatsAppIcon from './WhatsAppIcon';
 
 export default function Layout({ children }) {
   const location = useLocation();
+  const [isDark, setIsDark] = useState(false);
+
+  // Initialize dark mode from localStorage or system preference
+  useEffect(() => {
+    const saved = localStorage.getItem('theme');
+    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    setIsDark(!isDark);
+    if (!isDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   return (
-    <div className="min-h-screen pb-20 md:pb-0 flex flex-col bg-[#fafafa]">
+    <div className="min-h-screen pb-20 md:pb-0 flex flex-col bg-[#fafafa] dark:bg-[#0a0a0a] transition-colors duration-300">
       {/* Desktop Navigation */}
-      <header className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-100 px-8 py-4 flex items-center justify-between z-50 shadow-sm">
+      <header className="sticky top-0 bg-white/80 dark:bg-[#111]/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 px-8 py-4 flex items-center justify-between z-50 shadow-sm transition-colors duration-300">
         <div className="flex items-center gap-8">
-          <Link to="/" className="text-2xl font-black tracking-tight text-gray-900 hover:opacity-90 transition">
+          <Link to="/" className="text-2xl font-black tracking-tight text-gray-900 dark:text-white hover:opacity-90 transition">
             Drive<span className="text-green-600">UG</span>
           </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-600">
-            <Link to="/" className={`hover:text-gray-900 transition ${location.pathname === '/' ? 'text-gray-900' : ''}`}>Home</Link>
-            <Link to="/cars" className={`hover:text-gray-900 transition ${location.pathname === '/cars' ? 'text-gray-900' : ''}`}>Browse Cars</Link>
-            <Link to="/list-car" className={`hover:text-gray-900 transition ${location.pathname === '/list-car' ? 'text-gray-900' : ''}`}>List Your Car</Link>
+          <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-gray-600 dark:text-gray-300">
+            <Link to="/" className={`hover:text-gray-900 dark:hover:text-white transition ${location.pathname === '/' ? 'text-gray-900 dark:text-white' : ''}`}>Home</Link>
+            <Link to="/cars" className={`hover:text-gray-900 dark:hover:text-white transition ${location.pathname === '/cars' ? 'text-gray-900 dark:text-white' : ''}`}>Browse Cars</Link>
+            <Link to="/list-car" className={`hover:text-gray-900 dark:hover:text-white transition ${location.pathname === '/list-car' ? 'text-gray-900 dark:text-white' : ''}`}>List Your Car</Link>
           </nav>
         </div>
         
         <div className="flex items-center gap-4">
+          <button 
+            onClick={toggleTheme} 
+            className="p-2.5 rounded-full text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            aria-label="Toggle Dark Mode"
+          >
+            {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          </button>
           <a
             href={getWhatsAppLink('Hi DriveUG, I need some assistance.')}
             className="flex items-center gap-2 px-5 py-2.5 bg-[#25D366] hover:bg-[#20ba59] text-white rounded-full text-sm font-bold shadow-sm transition-all duration-300 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
@@ -40,11 +69,11 @@ export default function Layout({ children }) {
       </main>
 
       {/* Desktop Footer */}
-      <footer className="hidden md:block bg-white border-t border-gray-100 mt-12">
-        <div className="max-w-7xl mx-auto px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500">
+      <footer className="hidden md:block bg-white dark:bg-[#111] border-t border-gray-100 dark:border-gray-800 mt-12 transition-colors duration-300">
+        <div className="max-w-7xl mx-auto px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-500 dark:text-gray-400">
           <div className="flex items-center gap-3">
-            <span className="font-extrabold text-gray-900 text-lg">Drive<span className="text-green-600">UG</span></span>
-            <span className="text-gray-300">|</span>
+            <span className="font-extrabold text-gray-900 dark:text-white text-lg">Drive<span className="text-green-600">UG</span></span>
+            <span className="text-gray-300 dark:text-gray-700">|</span>
             <span>Premium Car Rentals Uganda</span>
           </div>
           <div>
@@ -65,9 +94,9 @@ export default function Layout({ children }) {
       </footer>
 
       {/* Mobile Footer Area (pre-nav spacing) */}
-      <div className="md:hidden mt-8 py-6 border-t border-gray-100 bg-white flex flex-col items-center gap-3 text-xs text-gray-400">
+      <div className="md:hidden mt-8 py-6 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#111] flex flex-col items-center gap-3 text-xs text-gray-400 dark:text-gray-500 transition-colors duration-300">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-800">DriveUG</span>
+          <span className="font-bold text-gray-800 dark:text-gray-200">DriveUG</span>
           <span>© 2026</span>
         </div>
         <a
@@ -82,7 +111,7 @@ export default function Layout({ children }) {
       </div>
 
       {/* Mobile Bottom Action Bar */}
-      <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] border border-gray-100/50 px-6 py-2 flex items-center justify-between z-50">
+      <nav className="md:hidden fixed bottom-4 left-4 right-4 bg-white/95 dark:bg-[#111]/95 backdrop-blur-md rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.5)] border border-gray-100/50 dark:border-gray-800/50 px-6 py-2 flex items-center justify-between z-50 transition-colors duration-300">
         <NavItem to="/" icon={<Home className="w-5 h-5" />} label="Home" current={location.pathname === '/'} />
         <NavItem to="/cars" icon={<Search className="w-5 h-5" />} label="Browse" current={location.pathname === '/cars'} />
         <NavItem to="/list-car" icon={<CarFront className="w-5 h-5" />} label="Earn" current={location.pathname === '/list-car'} />
@@ -106,7 +135,7 @@ function NavItem({ to, icon, label, current, onClick }) {
     <Link 
       to={to} 
       onClick={onClick} 
-      className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-300 ${current ? 'text-green-600 font-medium' : 'text-gray-400'}`}
+      className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl transition-all duration-300 ${current ? 'text-green-600 font-medium' : 'text-gray-400 dark:text-gray-500'}`}
     >
       <div className="transition-transform duration-300 scale-100 hover:scale-110">
         {icon}
