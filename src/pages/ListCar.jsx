@@ -1,76 +1,201 @@
-import { ShieldCheck, CheckCircle } from 'lucide-react';
+import { useState } from 'react';
+import { ShieldCheck, CheckCircle, Calculator, TrendingUp, Briefcase } from 'lucide-react';
 import { getWhatsAppLink } from '../utils/whatsapp';
+import WhatsAppIcon from '../components/WhatsAppIcon';
+
+function trackEvent(eventName, props = {}) {
+  try {
+    if (!window.__driveugEvents) window.__driveugEvents = [];
+    const entry = { event: eventName, ts: new Date().toISOString(), ...props };
+    window.__driveugEvents.push(entry);
+    console.log('[DriveUG Analytics]', entry);
+  } catch { /* silent — analytics must never break the UI */ }
+}
 
 export default function ListCar() {
+  const [makeModel, setMakeModel] = useState('');
+  const [dailyRate, setDailyRate] = useState(150000);
+
+  const estimatedDays = 15;
+  const monthlyEarnings = dailyRate * estimatedDays;
+  const platformFeePerDay = dailyRate * 0.10;
+  const renterDailyPrice = dailyRate + platformFeePerDay;
+
   const handleListCar = () => {
-    const msg = `Hi DriveUG! I would like to list my car on your platform. What details do you need?`;
+    trackEvent('message_us_whatsapp', {
+      page: 'list-car',
+      makeModel: makeModel || 'Not Specified',
+      targetRate: dailyRate,
+      projectedMonthly: monthlyEarnings,
+    });
+    const msg = `Hi DriveUG! I would like to list my vehicle on your platform.\n\nVehicle: ${makeModel || 'Not specified'}\nTarget Daily Rate: UGX ${dailyRate.toLocaleString()}\nProjected Monthly Earnings: UGX ${monthlyEarnings.toLocaleString()}\n\nPlease send me the onboarding steps. Thank you.`;
     window.location.href = getWhatsAppLink(msg);
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-0 py-8">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Earn money renting out your car</h1>
-        <p className="text-xl text-gray-500">Join the DriveUG platform today and turn your idle vehicle into extra income.</p>
+    <div className="max-w-5xl mx-auto px-4 md:px-0 py-8 space-y-12">
+
+      {/* ── Page Header ── */}
+      <div className="max-w-xl">
+        <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest mb-3">Partner Programme</p>
+        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight leading-tight mb-3">
+          List Your Car &amp; Earn Monthly Revenue
+        </h1>
+        <p className="text-gray-500 text-sm leading-relaxed font-normal">
+          Turn your idle vehicle into a consistent income stream. Join verified owners earning on Uganda&apos;s premium rental platform.
+        </p>
       </div>
 
-      <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 mb-8 text-center relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-accent-green rounded-full blur-3xl -mr-16 -mt-16 opacity-50" />
-        <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent-amber rounded-full blur-3xl -ml-16 -mb-16 opacity-50" />
-        
-        <div className="relative z-10">
-          <h2 className="text-2xl font-bold mb-2">Ready to list?</h2>
-          <p className="text-gray-600 mb-8 max-w-lg mx-auto">
-            We are currently onboarding early partners. Message our team directly on WhatsApp to get your car listed today.
+      {/* ── 100% Payout Pitch ── */}
+      <div className="bg-green-50 border border-green-100 rounded-2xl p-5 flex items-start gap-4">
+        <div className="w-9 h-9 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
+          <TrendingUp className="w-5 h-5 text-green-600" />
+        </div>
+        <div>
+          <p className="font-semibold text-gray-900 text-sm mb-1">100% of your listed price goes directly to you</p>
+          <p className="text-gray-500 text-sm font-normal leading-relaxed">
+            You set your daily rate. Renters pay a separate 10% platform fee on top — it never comes out of your earnings.
           </p>
-          <button 
+        </div>
+      </div>
+
+      {/* ── Calculator + Output ── */}
+      <div className="grid md:grid-cols-2 gap-6">
+
+        {/* Left — Inputs */}
+        <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 space-y-6">
+          <div className="flex items-center gap-2.5">
+            <Calculator className="w-5 h-5 text-gray-400" />
+            <div>
+              <h2 className="font-semibold text-gray-900 text-sm">Earnings Calculator</h2>
+              <p className="text-xs text-gray-400 font-normal">Estimate your monthly payout</p>
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            {/* Make / Model */}
+            <div>
+              <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                Vehicle Make &amp; Model
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Toyota Prado TX (2018)"
+                value={makeModel}
+                onChange={(e) => setMakeModel(e.target.value)}
+                className="w-full border border-gray-200 bg-gray-50 rounded-xl p-3 text-sm text-gray-900 placeholder-gray-400 outline-none focus:bg-white focus:border-gray-400 transition"
+              />
+            </div>
+
+            {/* Rate slider */}
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  Target Daily Rate
+                </label>
+                <span className="text-sm font-bold text-gray-900">UGX {dailyRate.toLocaleString()}</span>
+              </div>
+              <input
+                type="range"
+                min="50000"
+                max="1000000"
+                step="10000"
+                value={dailyRate}
+                onChange={(e) => setDailyRate(parseInt(e.target.value))}
+                className="w-full h-1.5 appearance-none bg-gray-100 rounded-full cursor-pointer accent-gray-900"
+              />
+              <div className="flex justify-between text-[10px] text-gray-400 font-medium mt-1.5">
+                <span>UGX 50k</span>
+                <span>UGX 1.0M</span>
+              </div>
+            </div>
+          </div>
+
+          {/* CTA */}
+          <button
+            id="btn-message-us-whatsapp"
             onClick={handleListCar}
-            className="bg-primary text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-gray-800 transition active:scale-95"
+            className="w-full bg-[#25D366] hover:bg-[#22c55e] text-white py-3.5 rounded-xl font-semibold text-sm shadow-sm transition-all duration-200 hover:shadow-md active:scale-[0.98] flex items-center justify-center gap-2"
           >
-            Message us on WhatsApp
+            <WhatsAppIcon className="w-4 h-4 text-white" />
+            <span>Apply to List Vehicle</span>
           </button>
         </div>
+
+        {/* Right — Earnings Output (matches site card style) */}
+        <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 flex flex-col justify-between gap-6">
+          <div>
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Estimated Monthly Payout</p>
+            <p className="text-3xl font-bold text-gray-900 tracking-tight">
+              UGX {monthlyEarnings.toLocaleString()}
+            </p>
+            <p className="text-xs text-gray-400 mt-1 font-normal">Based on {estimatedDays} active rental days / month</p>
+          </div>
+
+          <div className="space-y-3 pt-5 border-t border-gray-100">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-500">Your daily payout</span>
+              <span className="font-semibold text-gray-900">UGX {dailyRate.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-500">Platform fee (charged to renter)</span>
+              <span className="font-semibold text-gray-400">+ UGX {platformFeePerDay.toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm pt-3 border-t border-gray-100">
+              <span className="text-gray-500">Renter sees</span>
+              <span className="font-bold text-gray-900">UGX {renterDailyPrice.toLocaleString()} / day</span>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 border border-gray-100 rounded-xl p-4 text-xs text-gray-400 leading-relaxed">
+            Estimates assume standard Uganda premium fleet utilization. Actual results vary by vehicle specification, condition, and season.
+          </div>
+        </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <ShieldCheck className="w-6 h-6 text-green-600" /> Trust & Safety
-          </h3>
-          <ul className="space-y-3 text-gray-600">
-            <li className="flex items-start gap-2">
-              <CheckCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-              All renters are verified with National ID and Driving Permit.
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-              We collect and hold a security deposit before every trip.
-            </li>
-            <li className="flex items-start gap-2">
-              <CheckCircle className="w-5 h-5 text-gray-400 shrink-0 mt-0.5" />
-              You set your own daily pricing and availability.
-            </li>
+      {/* ── Info Grid ── */}
+      <div className="grid md:grid-cols-2 gap-6">
+        <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 space-y-4">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-green-600 shrink-0" />
+            <h3 className="font-semibold text-gray-900 text-sm">Fleet Security &amp; Safety</h3>
+          </div>
+          <ul className="space-y-3">
+            {[
+              'Full identity verification — National ID and Driving Permit required for all renters.',
+              'Mandatory security deposit collected and processed before every trip.',
+              'You control your own calendar availability and rental guidelines.',
+            ].map((item, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-sm text-gray-500">
+                <CheckCircle className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
+                <span>{item}</span>
+              </li>
+            ))}
           </ul>
         </div>
 
-        <div>
-          <h3 className="text-xl font-bold mb-4">What you'll need</h3>
-          <ul className="space-y-3 text-gray-600">
-            <li className="flex items-start gap-2">
-              <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm shrink-0">1</span>
-              At least 4 clear photos of the car.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm shrink-0">2</span>
-              Copy of the logbook for verification.
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-sm shrink-0">3</span>
-              Valid comprehensive insurance.
-            </li>
+        <div className="bg-white border border-gray-100 shadow-sm rounded-2xl p-6 space-y-4">
+          <div className="flex items-center gap-2.5">
+            <Briefcase className="w-5 h-5 text-gray-400 shrink-0" />
+            <h3 className="font-semibold text-gray-900 text-sm">Listing Requirements</h3>
+          </div>
+          <ul className="space-y-3">
+            {[
+              'High-resolution photos — at least 4 clear interior and exterior shots.',
+              'Valid vehicle registration and proof of logbook ownership.',
+              'Comprehensive insurance documentation covering commercial rental use.',
+            ].map((item, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-sm text-gray-500">
+                <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  {i + 1}
+                </span>
+                <span>{item}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>
+
     </div>
   );
 }

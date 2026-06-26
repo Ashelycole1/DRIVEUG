@@ -1,178 +1,321 @@
 import { useParams, Link } from 'react-router-dom';
 import { useState } from 'react';
-import { Star, MapPin, CheckCircle, User, Settings, Droplets, ShieldCheck, ChevronLeft } from 'lucide-react';
+import { Star, MapPin, CheckCircle, User, Settings, Droplets, ShieldCheck, ChevronLeft, Calendar, Clock } from 'lucide-react';
 import cars from '../data/cars.json';
 import { getWhatsAppLink } from '../utils/whatsapp';
+import WhatsAppIcon from '../components/WhatsAppIcon';
+
+// ── Lightweight click tracker ─────────────────────────────────────────────────
+function trackEvent(eventName, props = {}) {
+  try {
+    if (!window.__driveugEvents) window.__driveugEvents = [];
+    const entry = { event: eventName, ts: new Date().toISOString(), ...props };
+    window.__driveugEvents.push(entry);
+    console.log('[DriveUG Analytics]', entry);
+  } catch { /* silent — analytics must never break the UI */ }
+}
+
+// ── Date helpers ──────────────────────────────────────────────────────────────
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+function addDays(dateStr, n) {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+
+function daysBetween(startStr, endStr) {
+  const msPerDay = 1000 * 60 * 60 * 24;
+  return Math.max(1, Math.round((new Date(endStr) - new Date(startStr)) / msPerDay));
+}
+
+function formatDate(dateStr) {
+  return new Date(dateStr).toLocaleDateString('en-UG', {
+    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+  });
+}
 
 export default function CarDetail() {
   const { id } = useParams();
   const car = cars.find(c => c.id === id);
-  const [days, setDays] = useState(1);
+
+  const defaultPickup = addDays(today(), 1);
+  const defaultReturn = addDays(today(), 3);
+
+  const [pickupDate, setPickupDate] = useState(defaultPickup);
+  const [returnDate, setReturnDate] = useState(defaultReturn);
   const [withDriver, setWithDriver] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(0);
 
-  if (!car) return <div className="p-8 text-center">Car not found.</div>;
+  if (!car) return <div className="p-8 text-center text-gray-500 font-medium">Vehicle not found.</div>;
 
-  const driverFee = withDriver && car.driver_fee_ugx ? car.driver_fee_ugx * days : 0;
+  const days = daysBetween(pickupDate, returnDate);
+  const driverFee = (withDriver || car.driver_mode === 'driver_required') && car.driver_fee_ugx ? car.driver_fee_ugx * days : 0;
   const subtotal = (car.daily_price_ugx * days) + driverFee;
-  
-  // Platform fee is 10%
   const platformFee = subtotal * 0.10;
   const total = subtotal + platformFee;
 
+  const handlePickupChange = (e) => {
+    const newPickup = e.target.value;
+    setPickupDate(newPickup);
+    if (returnDate <= newPickup) {
+      setReturnDate(addDays(newPickup, 1));
+    }
+  };
+
   const handleBook = () => {
-    const msg = `Hi DriveUG! I'd like to book the ${car.make} ${car.model} for ${days} days. \nTotal estimate: UGX ${total.toLocaleString()}.\nWith Driver: ${withDriver ? 'Yes' : 'No'}.\nMy name is: `;
+    trackEvent('request_to_book', {
+      car: `${car.make} ${car.model}`,
+      pickup: pickupDate,
+      return: returnDate,
+      days,
+      total,
+    });
+    
+    const msg = `Hi DriveUG! I would like to request a booking for the ${car.make} ${car.model}.
+- Pickup Date: ${formatDate(pickupDate)}
+- Return Date: ${formatDate(returnDate)}
+- Duration: ${days} day${days !== 1 ? 's' : ''}
+- Chauffeur Service: ${withDriver || car.driver_mode === 'driver_required' ? 'Yes' : 'No'}
+- Estimated Total: UGX ${total.toLocaleString()}
+
+Full Name: `;
+
     window.location.href = getWhatsAppLink(msg);
+  };
+
+  const handleMessageOwner = () => {
+    trackEvent('message_owner_whatsapp', {
+      car: `${car.make} ${car.model}`,
+      owner: car.owner.name,
+    });
+    window.location.href = getWhatsAppLink(
+      `Hi DriveUG, I would like to inquire about ${car.owner.name}'s ${car.make} ${car.model} listed on your platform.`
+    );
   };
 
   return (
     <div className="max-w-6xl mx-auto px-4 md:px-0">
-      <Link to="/cars" className="inline-flex items-center gap-1 text-gray-500 hover:text-primary mb-6">
-        <ChevronLeft className="w-4 h-4" /> Back to cars
+      {/* Back button */}
+      <Link to="/cars" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-900 font-semibold mb-6 transition">
+        <ChevronLeft className="w-4 h-4" /> Back to browse fleet
       </Link>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main Content */}
+        {/* Main Details Column */}
         <div className="lg:col-span-2 space-y-8">
-          {/* Gallery */}
-          <div className="rounded-2xl overflow-hidden h-[300px] md:h-[450px] relative bg-gray-100">
-            <img src={car.photos[0]} alt={car.model} className="w-full h-full object-cover" />
+          {/* Main Gallery Frame */}
+          <div className="rounded-2xl overflow-hidden h-[300px] md:h-[460px] relative bg-gray-50 border border-gray-100 shadow-sm">
+            <img 
+              key={selectedPhoto}
+              src={car.photos[selectedPhoto]} 
+              alt={`${car.make} ${car.model}`} 
+              className="w-full h-full object-cover transition-opacity duration-300" 
+            />
           </div>
           
-          <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
-            {car.photos.map((p, i) => (
-              <img key={i} src={p} alt="" className="w-24 h-24 md:w-32 md:h-32 rounded-xl object-cover cursor-pointer border border-gray-200 hover:border-primary" />
-            ))}
-          </div>
+          {/* Thumbnails Row */}
+          {car.photos.length > 1 && (
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+              {car.photos.map((p, i) => (
+                <button
+                  key={i}
+                  onClick={() => setSelectedPhoto(i)}
+                  className={`shrink-0 w-24 h-20 rounded-xl overflow-hidden border-2 transition-all duration-200 shadow-sm focus:outline-none ${
+                    selectedPhoto === i
+                      ? 'border-green-500 scale-[1.04] shadow-md'
+                      : 'border-gray-100 hover:border-gray-300 opacity-70 hover:opacity-100'
+                  }`}
+                >
+                  <img src={p} alt={`View ${i + 1}`} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
 
-          <div>
-            <div className="flex justify-between items-start mb-4">
+          {/* Heading and Specifications */}
+          <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-3xl font-bold mb-2">{car.make} {car.model} <span className="text-gray-400 font-medium">{car.year}</span></h1>
-                <p className="text-gray-500 flex items-center gap-1">
-                  <MapPin className="w-4 h-4" /> {car.pickup_location}
+                <h1 className="text-3xl font-black text-gray-900 tracking-tight flex items-baseline gap-2">
+                  {car.make} {car.model}
+                  <span className="text-gray-400 font-semibold text-xl">{car.year}</span>
+                </h1>
+                <p className="text-gray-500 text-sm flex items-center gap-1.5 mt-1 font-medium">
+                  <MapPin className="w-4 h-4 text-green-600" /> {car.pickup_location}, Uganda
                 </p>
               </div>
-              <div className="bg-green-50 text-green-700 px-3 py-1 rounded-full flex items-center gap-1 font-semibold text-sm">
-                <Star className="w-4 h-4 fill-green-700" /> {car.rating_avg} ({car.trip_count} trips)
+              <div className="bg-green-50 border border-green-150 text-green-700 px-4 py-2 rounded-2xl flex items-center gap-1.5 font-bold text-sm shadow-sm shrink-0">
+                <Star className="w-4 h-4 fill-green-600 text-green-600" />
+                <span>{car.rating_avg}</span>
+                <span className="text-green-400 font-normal">|</span>
+                <span className="text-xs font-semibold">{car.trip_count} trips completed</span>
               </div>
             </div>
 
-            {/* Quick Specs */}
-            <div className="flex flex-wrap gap-4 py-6 border-y border-gray-100 my-6">
-              <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg">
-                <User className="text-gray-500 w-5 h-5" /> 
-                <span className="font-medium">{car.seats} Seats</span>
+            {/* Quick Spec Pills */}
+            <div className="grid grid-cols-3 gap-4 py-6 border-y border-gray-100 my-4 text-center">
+              <div className="flex flex-col items-center justify-center p-3 bg-gray-50/60 rounded-2xl border border-gray-100/50">
+                <User className="text-gray-500 w-5 h-5 mb-1" /> 
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Seats</span>
+                <span className="font-extrabold text-sm text-gray-900 mt-0.5">{car.seats} Passenger</span>
               </div>
-              <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg">
-                <Settings className="text-gray-500 w-5 h-5" /> 
-                <span className="font-medium">{car.transmission}</span>
+              <div className="flex flex-col items-center justify-center p-3 bg-gray-50/60 rounded-2xl border border-gray-100/50">
+                <Settings className="text-gray-500 w-5 h-5 mb-1" /> 
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Gearbox</span>
+                <span className="font-extrabold text-sm text-gray-900 mt-0.5">{car.transmission}</span>
               </div>
-              <div className="flex items-center gap-2 bg-gray-50 px-4 py-2 rounded-lg">
-                <Droplets className="text-gray-500 w-5 h-5" /> 
-                <span className="font-medium">{car.fuel_type}</span>
+              <div className="flex flex-col items-center justify-center p-3 bg-gray-50/60 rounded-2xl border border-gray-100/50">
+                <Droplets className="text-gray-500 w-5 h-5 mb-1" /> 
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Engine</span>
+                <span className="font-extrabold text-sm text-gray-900 mt-0.5">{car.fuel_type}</span>
               </div>
             </div>
 
-            <h2 className="text-xl font-bold mb-3">Description</h2>
-            <p className="text-gray-600 leading-relaxed mb-8">{car.description}</p>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-2">Description</h2>
+              <p className="text-gray-600 leading-relaxed text-sm">{car.description}</p>
+            </div>
 
-            {/* Owner Profile */}
-            <div className="bg-accent-amber p-6 rounded-2xl flex items-center justify-between">
+            {/* Owner Profile Panel */}
+            <div className="bg-[#fff9f0] border border-orange-100 p-6 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center font-bold text-xl">
+                <div className="w-12 h-12 bg-gray-900 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-sm shrink-0">
                   {car.owner.name.charAt(0)}
                 </div>
                 <div>
-                  <h3 className="font-bold flex items-center gap-1">
-                    {car.owner.name}
+                  <h3 className="font-bold text-gray-900 flex items-center gap-1.5">
+                    <span>{car.owner.name}</span>
                     {car.owner.verified && <CheckCircle className="w-4 h-4 text-green-600" />}
                   </h3>
-                  <p className="text-sm text-gray-600">Typically replies in {car.owner.response_time}</p>
+                  <p className="text-xs text-gray-500 font-medium">Active Partner • Average response: {car.owner.response_time}</p>
                 </div>
               </div>
               <button 
-                onClick={() => window.location.href = getWhatsAppLink(`Hi DriveUG, I have a question about ${car.owner.name}'s ${car.make} ${car.model}.`)}
-                className="px-4 py-2 bg-white rounded-full font-medium text-sm hover:bg-gray-50 shadow-sm"
+                id="btn-message-owner"
+                onClick={handleMessageOwner}
+                className="w-full sm:w-auto px-5 py-2.5 bg-white border border-gray-200 text-gray-700 hover:text-gray-900 rounded-2xl font-bold text-xs hover:bg-gray-50 hover:border-gray-300 shadow-sm active:scale-[0.98] transition-all flex items-center justify-center gap-2"
               >
-                Message
+                <WhatsAppIcon className="w-3.5 h-3.5 text-green-600" />
+                <span>Inquire About Car</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Booking Sidebar */}
+        {/* Booking Card Column */}
         <div className="lg:col-span-1">
-          <div className="bg-white p-6 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 sticky top-24">
-            <div className="mb-6">
-              <span className="text-3xl font-bold">UGX {car.daily_price_ugx.toLocaleString()}</span>
-              <span className="text-gray-500 font-medium"> / day</span>
+          <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-24 space-y-6">
+            <div>
+              <span className="text-3xl font-extrabold text-gray-900">UGX {car.daily_price_ugx.toLocaleString()}</span>
+              <span className="text-gray-500 font-semibold text-sm"> / day</span>
             </div>
 
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4">
+              {/* Pickup Date Picker */}
               <div>
-                <label className="block text-sm font-semibold mb-2">Duration (Days)</label>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  <Calendar className="w-4 h-4 text-green-600" />
+                  <span>Pickup Date</span>
+                </label>
                 <input 
-                  type="number" 
-                  min="1" 
-                  value={days} 
-                  onChange={(e) => setDays(parseInt(e.target.value) || 1)}
-                  className="w-full border border-gray-300 rounded-lg p-3 outline-none focus:border-primary"
+                  type="date" 
+                  min={today()}
+                  value={pickupDate} 
+                  onChange={handlePickupChange}
+                  className="w-full border border-gray-200 bg-gray-50 rounded-xl p-3 outline-none focus:bg-white focus:border-green-600 text-sm font-semibold transition-all"
                 />
               </div>
 
-              {car.driver_mode !== 'self_drive_only' && (
-                <div className="p-3 border border-gray-200 rounded-lg flex items-start gap-3">
-                  <input 
-                    type="checkbox" 
-                    id="driver" 
-                    checked={withDriver || car.driver_mode === 'driver_required'} 
-                    disabled={car.driver_mode === 'driver_required'}
-                    onChange={(e) => setWithDriver(e.target.checked)}
-                    className="mt-1 accent-primary w-4 h-4"
-                  />
-                  <div>
-                    <label htmlFor="driver" className="font-semibold block cursor-pointer">
-                      Add a driver
-                    </label>
-                    <p className="text-sm text-gray-500">
-                      {car.driver_mode === 'driver_required' ? 'Required for this vehicle' : `Optional (+UGX ${car.driver_fee_ugx?.toLocaleString()}/day)`}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Price Breakdown */}
-            <div className="space-y-3 mb-6 pt-4 border-t border-gray-100 text-gray-600">
-              <div className="flex justify-between">
-                <span>UGX {car.daily_price_ugx.toLocaleString()} x {days} days</span>
-                <span>UGX {(car.daily_price_ugx * days).toLocaleString()}</span>
+              {/* Return Date Picker */}
+              <div>
+                <label className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                  <Calendar className="w-4 h-4 text-green-600" />
+                  <span>Return Date</span>
+                </label>
+                <input 
+                  type="date" 
+                  min={addDays(pickupDate, 1)}
+                  value={returnDate} 
+                  onChange={(e) => setReturnDate(e.target.value)}
+                  className="w-full border border-gray-200 bg-gray-50 rounded-xl p-3 outline-none focus:bg-white focus:border-green-600 text-sm font-semibold transition-all"
+                />
               </div>
-              {withDriver && car.driver_fee_ugx && (
-                <div className="flex justify-between">
-                  <span>Driver fee</span>
-                  <span>UGX {driverFee.toLocaleString()}</span>
-                </div>
-              )}
-              <div className="flex justify-between">
-                <span className="flex items-center gap-1 underline decoration-dotted cursor-pointer">
-                  Platform fee (10%)
+
+              {/* Total Duration Badge */}
+              <div className="bg-green-50/50 border border-green-100 text-green-800 rounded-xl px-4 py-2.5 text-xs font-semibold flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-green-600" />
+                  <span>Rental Period</span>
                 </span>
-                <span>UGX {platformFee.toLocaleString()}</span>
+                <span>{days} Day{days !== 1 ? 's' : ''}</span>
+              </div>
+
+              {/* Driver Option Selector */}
+              {car.driver_mode !== 'self_drive_only' && (
+                <div className="p-4 border border-gray-150 rounded-2xl bg-gray-50/20 space-y-2">
+                  <label htmlFor="driver" className="flex items-start gap-3 cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      id="driver" 
+                      checked={withDriver || car.driver_mode === 'driver_required'} 
+                      disabled={car.driver_mode === 'driver_required'}
+                      onChange={(e) => setWithDriver(e.target.checked)}
+                      className="mt-1 accent-green-600 w-4 h-4 rounded border-gray-300 focus:ring-green-500"
+                    />
+                    <div>
+                      <span className="font-bold text-sm text-gray-900 block">Add Chauffeur Driver</span>
+                      <span className="text-xs text-gray-400 block mt-0.5">
+                        {car.driver_mode === 'driver_required' ? 'Required for this class' : `Optional support (+UGX ${car.driver_fee_ugx?.toLocaleString()}/day)`}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+              )}
+            </div>
+
+            {/* Receipt Summary */}
+            <div className="space-y-3 pt-4 border-t border-gray-150 text-sm text-gray-600">
+              <div className="flex justify-between items-center">
+                <span>Daily rate × {days} days</span>
+                <span className="font-semibold text-gray-900">UGX {(car.daily_price_ugx * days).toLocaleString()}</span>
+              </div>
+              
+              {(withDriver || car.driver_mode === 'driver_required') && car.driver_fee_ugx && (
+                <div className="flex justify-between items-center text-amber-700 bg-amber-50/50 p-2 rounded-xl border border-amber-100/55">
+                  <span>Chauffeur driver fee</span>
+                  <span className="font-semibold">UGX {driverFee.toLocaleString()}</span>
+                </div>
+              )}
+              
+              <div className="flex justify-between items-center">
+                <span className="underline decoration-dotted cursor-help text-gray-400">Platform Booking Fee (10%)</span>
+                <span className="font-semibold text-gray-900">UGX {platformFee.toLocaleString()}</span>
               </div>
             </div>
 
-            <div className="flex justify-between items-center font-bold text-xl mb-6 pt-4 border-t border-gray-100">
-              <span>Total</span>
+            {/* Total price billing */}
+            <div className="flex justify-between items-center font-black text-xl pt-4 border-t border-gray-150 text-gray-900">
+              <span>Total Price</span>
               <span>UGX {total.toLocaleString()}</span>
             </div>
 
-            <button onClick={handleBook} className="w-full bg-primary text-white py-4 rounded-full font-bold text-lg hover:bg-gray-800 transition active:scale-95 flex items-center justify-center gap-2">
-              Request to book
+            {/* CTA Request Action */}
+            <button
+              id="btn-request-to-book"
+              onClick={handleBook}
+              className="w-full bg-[#25D366] hover:bg-[#20ba59] text-white py-4 rounded-full font-bold text-md shadow-md transition-all duration-300 hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-2.5"
+            >
+              <WhatsAppIcon className="w-5 h-5 text-white" />
+              <span>Book via WhatsApp</span>
             </button>
 
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 font-medium">
-              <ShieldCheck className="w-4 h-4 text-green-600" /> Secure via WhatsApp (Phase 0)
+            {/* Trust Copy */}
+            <div className="flex items-start justify-center gap-2 text-xs text-gray-400 font-semibold text-center leading-normal">
+              <ShieldCheck className="w-4 h-4 text-green-600 shrink-0 mt-0.5" />
+              <span>Request and date configuration are verified directly with support staff.</span>
             </div>
           </div>
         </div>

@@ -7,19 +7,28 @@ export default {
   theme: {
     extend: {
       colors: {
-        background: '#f1f1f1',
-        primary: '#000000',
+        background: '#fafafa',
+        primary: '#111111',
         card: '#ffffff',
         accent: {
-          green: '#e0f2e9',
-          amber: '#fff3e0'
+          green: '#e8f5ed',
+          amber: '#fff8ee'
         }
       },
       fontFamily: {
-        sans: ['Inter', 'Roboto', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '1rem' }],
+      },
+      borderColor: {
+        DEFAULT: '#e5e7eb',
+        150: '#ebebeb',
+        250: '#d1d5db',
       }
     },
   },
   plugins: [],
 }
+
 

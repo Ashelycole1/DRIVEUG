@@ -4,15 +4,26 @@
 
 @layer base {
   body {
-    @apply bg-background text-gray-900 font-sans antialiased;
+    @apply bg-[#fafafa] text-gray-900 font-sans antialiased;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary text-white font-medium rounded-full px-6 py-3 transition hover:bg-gray-800 active:scale-95;
+    @apply bg-primary text-white font-semibold rounded-2xl px-6 py-3.5 transition-all duration-300 hover:bg-gray-800 active:scale-95 shadow-sm hover:shadow-md;
   }
   .card-surface {
-    @apply bg-card rounded-2xl shadow-sm border border-gray-100;
+    @apply bg-white rounded-3xl shadow-sm border border-gray-100 p-6;
+  }
+}
+
+/* Utilities to hide scrollbar while keeping functionality */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
   }
 }

@@ -9,8 +9,8 @@
     "transmission": "Automatic",
     "fuel_type": "Diesel",
     "photos": [
-      "https://images.unsplash.com/photo-1590209706362-e9d6d03426e2?auto=format&fit=crop&q=80&w=800",
-      "https://images.unsplash.com/photo-1621007947382-bb3c3994e3fd?auto=format&fit=crop&q=80&w=800"
+      "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1609521263047-f8f205293f24?auto=format&fit=crop&q=80&w=800"
     ],
     "description": "Premium 4x4 perfect for safaris and cross-country trips. Comes with a pop-up roof and heavy-duty suspension.",
     "daily_price_ugx": 450000,
@@ -123,5 +123,32 @@
       "verified": true,
       "response_time": "30 min"
     }
+  },
+  {
+    "id": "6",
+    "make": "Land Rover",
+    "model": "Defender 110",
+    "year": 2021,
+    "category": ["safari_4x4", "luxury"],
+    "seats": 7,
+    "transmission": "Automatic",
+    "fuel_type": "Diesel",
+    "photos": [
+      "https://images.unsplash.com/photo-1606016159991-dfe4f2746ad5?auto=format&fit=crop&q=80&w=800",
+      "https://images.unsplash.com/photo-1519641471654-76ce0107ad1b?auto=format&fit=crop&q=80&w=800"
+    ],
+    "description": "Iconic British 4x4 built for the toughest terrain. Spacious cabin, terrain response system, and panoramic roof — the ultimate safari companion.",
+    "daily_price_ugx": 550000,
+    "driver_mode": "driver_available",
+    "driver_fee_ugx": 60000,
+    "pickup_location": "Kampala",
+    "rating_avg": 4.9,
+    "trip_count": 9,
+    "owner": {
+      "name": "DriveUG Fleet",
+      "verified": true,
+      "response_time": "15 min"
+    }
   }
 ]
+

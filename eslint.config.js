@@ -29,6 +29,10 @@ export default [
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react/jsx-no-target-blank': 'off',
+      // PropTypes not used — project is plain JS without TypeScript
+      'react/prop-types': 'off',
+      // Allow console in analytics tracking helper (trackEvent)
+      'no-console': 'off',
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
