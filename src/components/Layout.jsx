@@ -8,10 +8,10 @@ export default function Layout({ children }) {
   const location = useLocation();
   const [isDark, setIsDark] = useState(false);
 
-  // Initialize dark mode from localStorage or system preference
+  // Initialize dark mode from localStorage or default to light mode
   useEffect(() => {
     const saved = localStorage.getItem('theme');
-    if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (saved === 'dark') {
       setIsDark(true);
       document.documentElement.classList.add('dark');
     }
