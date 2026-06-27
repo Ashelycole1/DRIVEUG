@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Home, Search, CarFront, Moon, Sun } from 'lucide-react';
 import { getWhatsAppLink } from '../utils/whatsapp';
 import WhatsAppIcon from './WhatsAppIcon';
+import InstallPrompt from './InstallPrompt';
 
 export default function Layout({ children }) {
   const location = useLocation();
@@ -126,6 +127,7 @@ export default function Layout({ children }) {
           current={false} 
         />
       </nav>
+      <InstallPrompt />
     </div>
   );
 }
